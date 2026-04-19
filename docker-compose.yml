@@ -35,13 +35,12 @@ services:
         healthcheck:
             test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
             interval: 10s
-            timeout: 3s
+            timeout: 10s
             retries: 5
         networks:
             - flerous_network
         command: >
             redis-server
-            --vm.overcommit_memory 1
             --maxmemory ${REDIS_MAXMEMORY:-512mb}
             --maxmemory-policy allkeys-lru
             --requirepass ${REDIS_PASSWORD}
