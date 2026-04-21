@@ -1,4 +1,5 @@
 from enum import StrEnum
+from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -26,17 +27,15 @@ class Config(BaseSettings):
 
 	# Redis
 	redis_host: str
-	redis_port: int
+	redis_port_inner: int
 	redis_password: str
-	redis_db_cache: int
-	redis_db_alerts: int
 
 	# PostgreSQL
 	postgres_user: str
 	postgres_password: str
 	postgres_db: str
 	postgres_host: str
-	postgres_port: int
+	postgres_port_inner: int
 
 	# Logging
 	log_level: LogLevel
@@ -44,7 +43,6 @@ class Config(BaseSettings):
 
 	# Environment
 	app_environment: AppEnvironment
-	debug: bool
 
 	def build_db_url(self) -> str:
 		"""Build SQLAlchemy URL scheme
@@ -52,4 +50,20 @@ class Config(BaseSettings):
 		Returns:
 			str: URL scheme
 		"""
-		return f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
+		return f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}@{self.postgres_host}:{self.postgres_port_inner}/{self.postgres_db}"
+
+
+class ProdConfig(Config):
+	debug: bool = False
+
+
+class DevConfig(Config):
+	debug: bool = True
+
+
+@lru_cache
+def get_config() -> Config:
+	env = Config().app_environment  # type: ignore
+	if env == AppEnvironment.PROD:
+		return ProdConfig()  # type: ignore
+	return DevConfig()  # type: ignore
