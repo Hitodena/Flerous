@@ -20,7 +20,12 @@ class Alert(TimestampMixin, Base):
         ForeignKey("coins.id"), nullable=False
     )
     coin = relationship("Coin", back_populates="alerts")
+
     upper_bound: Mapped[float | None] = mapped_column(nullable=True)
     lower_bound: Mapped[float | None] = mapped_column(nullable=True)
+
+    percent_threshold: Mapped[float | None] = mapped_column(nullable=True)
+    base_price: Mapped[float | None] = mapped_column(nullable=True)
+
     is_active: Mapped[bool] = mapped_column(default=True)
     user = relationship("User", back_populates="alerts")
